@@ -1,0 +1,62 @@
+# Multi-stage build using Red Hat images
+# Stage 1: Build with Red Hat UBI and Maven
+FROM registry.access.redhat.com/ubi9/openjdk-17:latest AS builder
+
+USER root
+RUN microdnf install -y maven && microdnf clean all
+
+WORKDIR /build
+COPY . .
+
+WORKDIR /build/CustomerOrderServicesProject
+RUN mvn clean package -DskipTests
+
+# Stage 2: Runtime with Red Hat UBI and WildFly
+FROM quay.io/wildfly/wildfly:31.0.1.Final-jdk17
+
+USER root
+
+# Download PostgreSQL JDBC driver
+RUN curl -L -o /tmp/postgresql.jar https://jdbc.postgresql.org/download/postgresql-42.7.1.jar
+
+# Create module directory for PostgreSQL driver
+RUN mkdir -p /opt/jboss/wildfly/modules/system/layers/base/org/postgresql/main && \
+    mv /tmp/postgresql.jar /opt/jboss/wildfly/modules/system/layers/base/org/postgresql/main/
+
+# Create module.xml for PostgreSQL
+RUN echo '<?xml version="1.0" encoding="UTF-8"?>' > /opt/jboss/wildfly/modules/system/layers/base/org/postgresql/main/module.xml && \
+    echo '<module xmlns="urn:jboss:module:1.9" name="org.postgresql">' >> /opt/jboss/wildfly/modules/system/layers/base/org/postgresql/main/module.xml && \
+    echo '  <resources>' >> /opt/jboss/wildfly/modules/system/layers/base/org/postgresql/main/module.xml && \
+    echo '    <resource-root path="postgresql.jar"/>' >> /opt/jboss/wildfly/modules/system/layers/base/org/postgresql/main/module.xml && \
+    echo '  </resources>' >> /opt/jboss/wildfly/modules/system/layers/base/org/postgresql/main/module.xml && \
+    echo '  <dependencies>' >> /opt/jboss/wildfly/modules/system/layers/base/org/postgresql/main/module.xml && \
+    echo '    <module name="javax.api"/>' >> /opt/jboss/wildfly/modules/system/layers/base/org/postgresql/main/module.xml && \
+    echo '    <module name="javax.transaction.api"/>' >> /opt/jboss/wildfly/modules/system/layers/base/org/postgresql/main/module.xml && \
+    echo '  </dependencies>' >> /opt/jboss/wildfly/modules/system/layers/base/org/postgresql/main/module.xml && \
+    echo '</module>' >> /opt/jboss/wildfly/modules/system/layers/base/org/postgresql/main/module.xml
+
+# Create CLI commands file for datasource configuration
+RUN echo 'embed-server --server-config=standalone.xml --std-out=echo' > /tmp/commands.cli && \
+    echo 'batch' >> /tmp/commands.cli && \
+    echo '/subsystem=datasources/jdbc-driver=postgresql:add(driver-name=postgresql,driver-module-name=org.postgresql,driver-class-name=org.postgresql.Driver)' >> /tmp/commands.cli && \
+    echo 'data-source add --name=OrderDS --jndi-name=java:/jdbc/orderds --driver-name=postgresql --connection-url=jdbc:postgresql://postgres-orderdb:5432/ORDERDB --user-name=db2inst1 --password=db2inst1 --enabled=true --use-java-context=true --jta=true --validate-on-match=true --background-validation=false' >> /tmp/commands.cli && \
+    echo 'run-batch' >> /tmp/commands.cli && \
+    echo 'stop-embedded-server' >> /tmp/commands.cli
+
+# Execute CLI commands to configure datasource
+RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/tmp/commands.cli
+
+# Fix permissions for jboss user
+RUN chown -R jboss:jboss /opt/jboss/wildfly/standalone
+
+# Copy the built EAR file
+COPY --from=builder /build/CustomerOrderServicesApp/target/CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear /opt/jboss/wildfly/standalone/deployments/
+RUN chown jboss:jboss /opt/jboss/wildfly/standalone/deployments/CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear
+
+# Expose WildFly ports
+EXPOSE 8080 9990
+
+USER jboss
+
+# Start WildFly
+CMD ["/opt/jboss/wildfly/bin/standalone.sh", "-b", "0.0.0.0", "-bmanagement", "0.0.0.0"]

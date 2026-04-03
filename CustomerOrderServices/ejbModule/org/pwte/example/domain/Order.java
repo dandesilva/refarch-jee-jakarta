@@ -1,0 +1,104 @@
+package org.pwte.example.domain;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.Set;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Version;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+@Entity
+@Table(name="ORDERS")
+public class Order implements Serializable {
+	
+	private static final long serialVersionUID = -7488064826451093257L;
+	
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name="ORDER_ID")
+	protected int orderId;
+	protected BigDecimal total;
+	public static enum Status { OPEN, SUBMITTED, SHIPPED, CLOSED }
+	protected Status status;
+	
+	@Column(name="SUBMIT_TIME")
+	protected Date submittedTime;
+	
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumn(name="CUSTOMER_ID",referencedColumnName="CUSTOMER_ID")
+	protected AbstractCustomer customer;
+	
+	@OneToMany(cascade=CascadeType.ALL,fetch=FetchType.EAGER,mappedBy="order")
+	@JsonBackReference
+	protected Set<LineItem> lineitems;
+	  
+	@Version
+	protected long version;
+	  
+	@JsonIgnore
+	public long getVersion() {
+		return version;
+	}
+	
+	@JsonIgnore
+	public void setVersion(long version) {
+		this.version = version;
+	}
+	public Set<LineItem> getLineitems() {
+		return lineitems;
+	}
+	public void setLineitems(Set<LineItem> lineitmes) {
+		this.lineitems = lineitmes;
+	}
+	
+	@JsonIgnore
+	public AbstractCustomer getCustomer() {
+		return customer;
+	}
+	
+	@JsonIgnore
+	public void setCustomer(AbstractCustomer customer) {
+		this.customer = customer;
+	}
+	public int getOrderId() {
+		return orderId;
+	}
+	public void setOrderId(int orderId) {
+		this.orderId = orderId;
+	}
+	public BigDecimal getTotal() {
+		return total;
+	}
+	public void setTotal(BigDecimal total) {
+		this.total = total;
+	}
+	public Status getStatus() {
+		return status;
+	}
+	public void setStatus(Status status) {
+		this.status = status;
+	}
+
+	public Date getSubmittedTime() {
+		return submittedTime;
+	}
+
+	public void setSubmittedTime(Date submittedTime) {
+		this.submittedTime = submittedTime;
+	}
+
+}
