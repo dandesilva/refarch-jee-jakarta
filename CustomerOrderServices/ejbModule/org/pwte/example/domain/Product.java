@@ -15,6 +15,7 @@ import jakarta.persistence.NamedNativeQuery;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.json.bind.annotation.JsonbTransient;
 
 @Entity
@@ -63,11 +64,13 @@ public class Product implements Serializable {
 	}
 	
 	@JsonProperty(value="id")
+	@JsonbProperty("id")
 	public int getProductId() {
 		return productId;
 	}
-	
+
 	@JsonProperty(value="id")
+	@JsonbProperty("id")
 	public void setProductId(int productId) {
 		this.productId = productId;
 	}
@@ -93,11 +96,13 @@ public class Product implements Serializable {
 	}
 	
 	@JsonProperty(value="image")
+	@JsonbProperty("image")
 	public String getImagePath() {
 		return imagePath;
 	}
-	
+
 	@JsonProperty(value="image")
+	@JsonbProperty("image")
 	public void setImagePath(String imagePath) {
 		this.imagePath = imagePath;
 	}
