@@ -4,7 +4,7 @@ A modernized enterprise Java application demonstrating Jakarta EE 10 features, r
 
 ## 📋 Overview
 
-This project is a **migrated and modernized version** of IBM's reference architecture for JEE Customer Order Services [https://github.com/ibm-cloud-architecture/refarch-jee-customerorder].
+This project is a **migrated and modernized version** of [IBM's reference architecture for JEE Customer Order Services](https://github.com/ibm-cloud-architecture/refarch-jee-customerorder).
 The application has been upgraded from legacy JavaEE 5/6 to **Jakarta EE 10**, enabling it to run on modern application servers and cloud-native infrastructure.
 
 ### What This Application Does
