@@ -74,3 +74,4 @@ secrets/
 
 # Keep these
 !.gitignore
+node_modules

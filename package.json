@@ -1,0 +1,23 @@
+{
+  "name": "refarch-jee-jakarta-presentations",
+  "version": "1.0.0",
+  "description": "Jakarta EE migration presentation materials",
+  "scripts": {
+    "export": "./export-presentation.sh",
+    "export:pdf": "npx @marp-team/marp-cli PRESENTATION.md --pdf --allow-local-files -o presentation.pdf",
+    "export:html": "npx @marp-team/marp-cli PRESENTATION.md --html --allow-local-files -o presentation.html",
+    "export:pptx": "npx @marp-team/marp-cli PRESENTATION.md --pptx --allow-local-files -o presentation.pptx",
+    "preview": "npx @marp-team/marp-cli -s PRESENTATION.md"
+  },
+  "keywords": [
+    "jakarta-ee",
+    "migration",
+    "presentation",
+    "marp"
+  ],
+  "author": "Dan DeSilva",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@marp-team/marp-cli": "^4.3.1"
+  }
+}

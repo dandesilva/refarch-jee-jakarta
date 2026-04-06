@@ -1,0 +1,8 @@
+[allowlist]
+  description = "Global Allowlist"
+
+  # Ignore based on any subset of the line
+  regexes = [
+    # Ignore lines containing Flickr demo API key
+    '''8c6803164dbc395fb7131c9d54843627''',
+  ]
