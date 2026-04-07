@@ -7,6 +7,26 @@ A modernized enterprise Java application demonstrating Jakarta EE 10 features, r
 This project is a **migrated and modernized version** of [IBM's reference architecture for JEE Customer Order Services](https://github.com/ibm-cloud-architecture/refarch-jee-customerorder).
 The application has been upgraded from legacy JavaEE 5/6 to **Jakarta EE 10**, enabling it to run on modern application servers and cloud-native infrastructure.
 
+## 🔖 Available Versions
+
+This reference architecture is available in multiple Java LTS versions. Choose the version that best fits your needs:
+
+| Branch | Java Version | Status | Best For |
+|--------|--------------|--------|----------|
+| **[`java-21`](../../tree/java-21)** | 21 (LTS) | ✅ **Recommended** | New projects, modern features, best performance |
+| **[`java-11`](../../tree/java-11)** | 11 (LTS) | ✅ Stable | Conservative migrations, Java 11 standardization |
+
+**Quick Start by Version:**
+```bash
+# Java 21 (Recommended)
+git clone -b java-21 https://github.com/dandesilva/refarch-jee-jakarta.git
+
+# Java 11 (Conservative)
+git clone -b java-11 https://github.com/dandesilva/refarch-jee-jakarta.git
+```
+
+📚 **Detailed Comparison:** See [VERSION_MATRIX.md](VERSION_MATRIX.md) for complete feature comparison, performance differences, and migration guidance.
+
 ### What This Application Does
 
 Customer Order Services is a full-stack enterprise application that provides:
@@ -20,7 +40,7 @@ Customer Order Services is a full-stack enterprise application that provides:
 
 | Component | Technology | Version |
 |-----------|-----------|---------|
-| **Language** | Java | 11 |
+| **Language** | Java | 11 or 21 (see [versions](#-available-versions)) |
 | **Enterprise Platform** | Jakarta EE | 10 |
 | **Application Server** | WildFly | 31.0.1.Final |
 | **Database** | PostgreSQL | 15 |
@@ -66,15 +86,21 @@ Customer Order Services is a full-stack enterprise application that provides:
 
 ### Prerequisites
 
-- **Java 11 or later**
+- **Java 11 or 21** (depending on branch)
 - **Maven 3.6+**
 - **Podman** or Docker
 - **Git**
 
 ### 1. Clone the Repository
 
+**Choose your Java version:**
 ```bash
-git clone https://github.com/dandesilva/refarch-jee-jakarta.git
+# Java 21 (Recommended)
+git clone -b java-21 https://github.com/dandesilva/refarch-jee-jakarta.git
+cd refarch-jee-jakarta
+
+# OR Java 11 (Conservative)
+git clone -b java-11 https://github.com/dandesilva/refarch-jee-jakarta.git
 cd refarch-jee-jakarta
 ```
 
