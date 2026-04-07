@@ -1,5 +1,7 @@
 # Customer Order Services - Jakarta EE 10 Edition
 
+> **🚀 Java 21 LTS Version - Recommended** | Also available: [Java 11](../../tree/java-11) | [Compare Versions](VERSION_MATRIX.md)
+
 A modernized enterprise Java application demonstrating Jakarta EE 10 features, running on WildFly 31 with PostgreSQL.
 
 ## 📋 Overview
