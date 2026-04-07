@@ -119,7 +119,7 @@ A Real-World Migration Story
 
 **Target Stack:**
 - Jakarta EE 10
-- Java 11 (LTS)
+- Java 11 or 21 (LTS - user choice via branches)
 - WildFly 31
 - PostgreSQL 15
 - Hibernate 6.4
@@ -489,6 +489,122 @@ podman run -d --name customerorder-app \
 
 <!-- _class: lead -->
 
+# Phase 7: Multi-Version Support
+
+---
+
+## Challenge: Supporting Multiple Java LTS Versions
+
+**Problem:**
+- Different organizations have different Java version requirements
+- Some need Java 11 (conservative approach)
+- Others want Java 21 (modern features, better performance)
+
+**Solution:** Git branch strategy for multiple Java LTS versions
+
+**Goal:** Make it easy for users to choose their preferred Java version
+
+---
+
+## Branch Strategy Implementation
+
+**Created separate branches for each Java LTS version:**
+
+```
+main
+├── java-11  (Java 11 LTS - Conservative)
+└── java-21  (Java 21 LTS - Recommended)
+```
+
+**Each branch is fully functional and independently maintained**
+
+**Users can simply clone the version they need:**
+```bash
+# Java 21 (Recommended)
+git clone -b java-21 https://github.com/dandesilva/refarch-jee-jakarta.git
+
+# Java 11 (Conservative)
+git clone -b java-11 https://github.com/dandesilva/refarch-jee-jakarta.git
+```
+
+---
+
+## Java 21 Branch Updates
+
+**Updated configuration for Java 21:**
+
+**Maven (pom.xml):**
+```xml
+<properties>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+</properties>
+```
+
+**Dockerfile:**
+```dockerfile
+# Build stage
+FROM registry.access.redhat.com/ubi9/openjdk-21:latest AS builder
+
+# Runtime stage
+FROM quay.io/wildfly/wildfly:31.0.1.Final-jdk21
+```
+
+---
+
+## Version Comparison Table
+
+| Feature | Java 11 | Java 21 |
+|---------|---------|---------|
+| **LTS Support** | Until Sept 2026 | Until Sept 2029 |
+| **Records** | ❌ | ✅ |
+| **Pattern Matching** | ❌ | ✅ |
+| **Text Blocks** | ❌ | ✅ |
+| **Virtual Threads** | ❌ | ✅ |
+| **Performance** | Baseline | +10-20% faster |
+| **Memory** | Baseline | -10-15% lower |
+| **Best For** | Conservative | Modern projects |
+
+---
+
+## Documentation Added
+
+**VERSION_MATRIX.md** - Comprehensive comparison guide:
+- Detailed feature comparison
+- Performance characteristics
+- Migration guidance
+- Use case recommendations
+
+**Updated README.md** with version selector:
+- Clear version badges on each branch
+- Quick-start commands for each version
+- Cross-links between versions
+
+**Set default branch to `java-21`** (recommended version)
+
+---
+
+## User Experience Benefits
+
+**Clear Choice for Different Needs:**
+
+**Java 11 Branch:**
+- Conservative migration path
+- Minimal changes from initial migration
+- Good for organizations standardized on Java 11
+
+**Java 21 Branch:**
+- Modern Java features (records, pattern matching, text blocks)
+- Better performance (+10-20% throughput)
+- Longer support timeline (until 2029)
+- Recommended for new projects
+
+**Both branches:** Same Jakarta EE 10 APIs, same functionality
+
+---
+
+<!-- _class: lead -->
+
 # Challenges Encountered
 
 ---
@@ -590,12 +706,13 @@ IBM DB2 doesn't support Apple Silicon → Switch to PostgreSQL
 
 | Aspect | Before | After | Improvement |
 |--------|--------|-------|-------------|
-| **Java** | 1.6 (2006) | 11 (2018 LTS) | Modern features |
+| **Java** | 1.6 (2006) | 11 or 21 (LTS) | Modern features |
 | **Platform** | JavaEE 5/6 | Jakarta EE 10 | Current standard |
 | **App Server** | IBM WebSphere | WildFly 31 | Vendor independent |
 | **Database** | IBM DB2 | PostgreSQL 15 | Open source |
 | **JPA** | OpenJPA | Hibernate 6.4 | Industry standard |
 | **Deployment** | Manual | Containerized | Cloud-ready |
+| **Versions** | Single | Multi-version branches | User choice |
 
 ---
 
@@ -738,18 +855,23 @@ IBM DB2 doesn't support Apple Silicon → Switch to PostgreSQL
 
 ## Long-term Roadmap
 
-**Phase 1: Production Hardening** (1-2 months)
+**Phase 1: Multi-Version Support** ✅ **COMPLETE**
+- Java 11 and Java 21 LTS branches
+- VERSION_MATRIX.md documentation
+- User choice via git branches
+
+**Phase 2: Production Hardening** (1-2 months)
 - SSL/TLS configuration
 - Connection pool tuning
 - JVM optimization
 - Backup/restore procedures
 
-**Phase 2: Modern Java Features** (2-3 months)
-- Upgrade to Java 17 LTS
-- Records for DTOs
-- Text blocks, switch expressions
+**Phase 3: Modern Java Features** (2-3 months)
+- Adopt Java 21 features (records, text blocks, pattern matching)
+- Refactor DTOs to use records
+- Modernize string handling
 
-**Phase 3: Cloud Deployment** (3-4 months)
+**Phase 4: Cloud Deployment** (3-4 months)
 - Kubernetes manifests
 - CI/CD pipeline
 - Multi-environment strategy
@@ -775,7 +897,12 @@ IBM DB2 doesn't support Apple Silicon → Switch to PostgreSQL
 - Excellent tooling
 - Strong community
 
-**3. Process Matters**
+**3. Multi-Version Support Empowers Users**
+- Java 11 and Java 21 branches
+- Users choose based on their needs
+- Same Jakarta EE 10 functionality
+
+**4. Process Matters**
 - Incremental migration reduces risk
 - Automation accelerates work
 - Documentation ensures success
@@ -818,8 +945,10 @@ IBM DB2 doesn't support Apple Silicon → Switch to PostgreSQL
 
 **GitHub Repository:**
 https://github.com/dandesilva/refarch-jee-jakarta
+**Default branch:** `java-21` (recommended)
 
 **Documentation:**
+- `VERSION_MATRIX.md` - Java version comparison guide
 - `MIGRATION.md` - Complete migration guide
 - `DEPLOYMENT.md` - Deployment instructions
 - `docs/session-logs/` - Step-by-step logs
