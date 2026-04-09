@@ -36,6 +36,15 @@ style: |
 **Customer Order Services**
 A Real-World Migration Story
 
+<!--
+SPEAKER NOTES:
+- Welcome everyone and introduce yourself
+- Set expectations: this is a real migration story, not theoretical
+- Mention this took ~15 hours of active work
+- Emphasize that attendees will see both successes and challenges
+- Time: 1 minute
+-->
+
 ---
 
 <!-- _class: lead -->
@@ -56,6 +65,16 @@ A Real-World Migration Story
 
 **Built in the early 2010s, now needs modernization**
 
+<!--
+SPEAKER NOTES:
+- This is a typical enterprise e-commerce system
+- Point out the comprehensive nature: not just a CRUD app
+- Mention this represents thousands of applications still running today
+- Ask audience: "How many have similar legacy apps?"
+- Key point: This is production code that's been running for 10+ years
+- Time: 2 minutes
+-->
+
 ---
 
 ## Original Technology Stack
@@ -71,6 +90,17 @@ A Real-World Migration Story
 
 **Problem: Vendor lock-in, outdated, hard to modernize**
 
+<!--
+SPEAKER NOTES:
+- Emphasize Java 1.6 is from 2006 - nearly 20 years old!
+- Point out vendor lock-in risk: IBM-specific everywhere
+- Security concerns: old Java versions have known vulnerabilities
+- Cost implications: IBM licensing can be expensive
+- Recruiting challenge: hard to find developers familiar with old tech
+- This is a common situation in many enterprises
+- Time: 2 minutes
+-->
+
 ---
 
 ## Why Migrate?
@@ -81,6 +111,17 @@ A Real-World Migration Story
 - **Long-term Support** - Active development and community
 - **Performance** - Modern JVM and runtime improvements
 - **Cost** - Open source alternatives
+
+<!--
+SPEAKER NOTES:
+- This is the "why" slide - spend time here
+- Vendor independence is often the #1 driver for migrations
+- Jakarta EE is the official successor to Java EE (Oracle donated it to Eclipse Foundation)
+- Cloud native: containers, Kubernetes - can't do this easily with old WebSphere
+- Mention Oracle ended Java EE development in 2017
+- Jakarta EE has backing from IBM, Red Hat, Oracle, and others
+- Time: 3 minutes
+-->
 
 ---
 
@@ -105,6 +146,17 @@ A Real-World Migration Story
 
 **Manual JNDI lookups** throughout REST layer
 
+<!--
+SPEAKER NOTES:
+- This is the assessment phase - critical for planning
+- 26 files might not sound like much, but each needs careful review
+- IBM dependencies are the red flag - vendor lock-in
+- Jackson 1.x: Codehaus project shut down in 2013!
+- JNDI lookups: old pattern, should use CDI injection
+- Key message: most legacy apps have similar issues
+- Time: 2 minutes
+-->
+
 ---
 
 ## Strategic Decision: Jakarta EE 10
@@ -124,6 +176,17 @@ A Real-World Migration Story
 - PostgreSQL 15
 - Hibernate 6.4
 
+<!--
+SPEAKER NOTES:
+- Why Jakarta EE 10 and not earlier versions? It's the current standard
+- Could have done Jakarta EE 9 (minimal changes) but 10 gives us modern features
+- WildFly chosen because: free, active development, good documentation
+- PostgreSQL: open source, ARM64 support (important for dev on Apple Silicon)
+- Hibernate: industry standard JPA provider, excellent tooling
+- This combination is production-proven and well-supported
+- Time: 2 minutes
+-->
+
 ---
 
 <!-- _class: lead -->
@@ -140,14 +203,35 @@ A Real-World Migration Story
 <maven.compiler.target>1.6</maven.compiler.target>
 ```
 
-**After:**
+**After (Choose Java 11 or 21):**
 ```xml
+<!-- Java 11 (Conservative) -->
 <maven.compiler.source>11</maven.compiler.source>
 <maven.compiler.target>11</maven.compiler.target>
+
+<!-- OR Java 21 (Recommended) -->
+<maven.compiler.source>21</maven.compiler.source>
+<maven.compiler.target>21</maven.compiler.target>
+
 <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 ```
 
 **Impact:** Modern language features, better performance, security updates
+
+<!--
+SPEAKER NOTES:
+- This is Phase 1 - start with the foundation
+- Java 1.6 to 11/21 is a huge jump (5+ major versions!)
+- We support BOTH Java 11 and Java 21 via separate git branches
+- Java 11: Conservative choice, stable, widely adopted
+- Java 21: Latest LTS, modern features (records, pattern matching, virtual threads)
+- Added UTF-8 encoding - critical for internationalization
+- Modern features: try-with-resources, lambda expressions, var keyword (11+)
+- Security: Java 1.6 has numerous CVEs, no longer supported
+- Performance: GC improvements alone are worth the upgrade
+- Will discuss multi-version strategy in detail later
+- Time: 2 minutes
+-->
 
 ---
 
@@ -169,6 +253,18 @@ TEXT
 ```
 
 **Result:** ✅ 13 products, 8 categories migrated successfully
+
+<!--
+SPEAKER NOTES:
+- Real-world challenge: IBM DB2 container doesn't support ARM64
+- Many developers use Apple Silicon Macs - this was a blocker
+- PostgreSQL: excellent choice, fully SQL standard compliant
+- Schema differences are minor - mostly identity generation syntax
+- CLOB vs TEXT: PostgreSQL TEXT is better (no size limit, same performance)
+- Data migration was seamless - standard SQL INSERT statements
+- Validated: all products and categories loaded correctly
+- Time: 2 minutes
+-->
 
 ---
 
@@ -250,6 +346,19 @@ find . -name "*.java" -exec sed -i '' \
 - `javax.enterprise.*` → `jakarta.enterprise.*`
 - `javax.annotation.*` → `jakarta.annotation.*`
 
+<!--
+SPEAKER NOTES:
+- This is Phase 2 - the big rename
+- javax to jakarta: looks simple, but impacts every file
+- Why the rename? Legal/trademark reasons when Oracle donated to Eclipse
+- Automated with sed command - DON'T do this manually!
+- Also available: Eclipse Transformer tool (better for complex projects)
+- Always review automated changes - sed can be too aggressive
+- 26 files modified - compile after this to catch any issues
+- Pro tip: use version control, commit after each phase
+- Time: 2 minutes
+-->
+
 ---
 
 ## Files Modified
@@ -295,6 +404,17 @@ JAX-RS application configuration
                              https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd">
 ```
 
+<!--
+SPEAKER NOTES:
+- XML updates often forgotten but critical
+- Namespace changes: java.sun.com → jakarta.ee
+- Schema version: 3.0 → 5.0 (Jakarta EE 10 uses Servlet 5.0)
+- HTTPS URLs (not HTTP) - better security
+- Your IDE might show errors until you update these
+- Make sure XSD files are accessible (or cached locally)
+- Time: 1 minute
+-->
+
 ---
 
 ## persistence.xml Evolution
@@ -330,6 +450,18 @@ JAX-RS application configuration
 </persistence>
 ```
 
+<!--
+SPEAKER NOTES:
+- Persistence.xml is critical - JPA configuration
+- Version 2.0 → 3.0 (Jakarta Persistence)
+- Provider change: OpenJPA → Hibernate
+- Datasource: using JNDI lookup (java:/jdbc/orderds)
+- Hibernate dialect: tells Hibernate how to generate SQL for PostgreSQL
+- hbm2ddl.auto: "none" means we manage schema ourselves (production best practice)
+- Different providers have different properties - read the docs!
+- Time: 2 minutes
+-->
+
 ---
 
 <!-- _class: lead -->
@@ -359,6 +491,18 @@ public class ProductResource {
 
 **Issues:** Verbose, error-prone, silent failures, not using CDI
 
+<!--
+SPEAKER NOTES:
+- This is a common anti-pattern in older JavaEE apps
+- Manual JNDI lookups were the old way (pre-CDI)
+- Problems: verbose boilerplate, try-catch blocks everywhere
+- Silent failures: printStackTrace doesn't tell you much
+- Hard to test: can't easily mock dependencies
+- JNDI string typos only caught at runtime
+- This pattern was acceptable in 2010, but not anymore
+- Time: 2 minutes
+-->
+
 ---
 
 ## Solution: Modern CDI Injection
@@ -384,6 +528,20 @@ public class ProductResource {
 
 **Impact:** 3 REST resources refactored, ~50 lines removed
 
+<!--
+SPEAKER NOTES:
+- THIS is why we modernize - cleaner code!
+- @RequestScoped: tells container to create instance per HTTP request
+- @EJB: automatic injection - container does the JNDI lookup for you
+- No constructor, no try-catch, no error handling needed
+- Container handles lifecycle and cleanup
+- Much easier to unit test (can inject mocks)
+- Type-safe: compile-time checking, not runtime strings
+- This is Jakarta EE best practice
+- Removed ~50 lines of boilerplate - multiply that across a large app!
+- Time: 3 minutes
+-->
+
 ---
 
 <!-- _class: lead -->
@@ -408,6 +566,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 **Files updated:** 5 domain entities
 
+<!--
+SPEAKER NOTES:
+- Jackson Codehaus shut down in 2013 - over a decade ago!
+- FasterXML is the modern, actively maintained version
+- API mostly compatible, just package change
+- Same annotation names: @JsonIgnore, @JsonProperty, etc.
+- FasterXML has better performance and features
+- Security: old libraries have known vulnerabilities
+- Easy update: mostly just changing import statements
+- Time: 1 minute
+-->
+
 ---
 
 ## IBM JSON → org.json
@@ -431,6 +601,18 @@ groups.put(name);  // org.json API
 ```
 
 **Small API differences require careful code review**
+
+<!--
+SPEAKER NOTES:
+- IBM JSON: vendor lock-in, not publicly available
+- org.json: standard, open source, widely used
+- API difference: .add() vs .put() - subtle but important
+- Must review and test all JSON manipulation code
+- org.json is well-maintained and documented
+- Alternative: could use Jakarta JSON-B (built into Jakarta EE)
+- Lesson: prefer standard libraries over vendor-specific ones
+- Time: 1 minute
+-->
 
 ---
 
@@ -460,6 +642,20 @@ FROM quay.io/wildfly/wildfly:31.0.1.Final-jdk17
 EXPOSE 8080 9990
 ```
 
+<!--
+SPEAKER NOTES:
+- Modern deployment = containers
+- Multi-stage build: keeps final image small
+- Stage 1: builds the EAR file using Maven
+- Stage 2: runtime-only, copies built artifact
+- Why UBI (Universal Base Image)? Red Hat supported, secure, minimal
+- WildFly official image: pre-configured, production-ready
+- JDBC driver configuration via CLI scripts
+- Port 8080: application, Port 9990: admin console
+- This approach works with Docker, Podman, Kubernetes
+- Time: 2 minutes
+-->
+
 ---
 
 ## Infrastructure as Code
@@ -485,6 +681,19 @@ podman run -d --name customerorder-app \
   customerorder-app:latest
 ```
 
+<!--
+SPEAKER NOTES:
+- Infrastructure as Code: reproducible, version controlled
+- Podman network: isolated container network
+- Containers can reference each other by name (postgres-orderdb)
+- Database starts first, application connects to it
+- Environment variables for configuration
+- Port mapping: 8080 on host → 8080 in container
+- Same approach works in Kubernetes with minimal changes
+- Using Podman (Docker-compatible, daemonless, more secure)
+- Time: 2 minutes
+-->
+
 ---
 
 <!-- _class: lead -->
@@ -503,6 +712,18 @@ podman run -d --name customerorder-app \
 **Solution:** Git branch strategy for multiple Java LTS versions
 
 **Goal:** Make it easy for users to choose their preferred Java version
+
+<!--
+SPEAKER NOTES:
+- This was Phase 7 of our migration
+- Real-world problem: not everyone can adopt Java 21 immediately
+- Some organizations: Java 11 is the approved LTS version
+- Others: want cutting-edge features and performance
+- One size doesn't fit all
+- Solution: maintain separate branches for each LTS version
+- Same Jakarta EE 10 code, different Java compiler targets
+- Time: 2 minutes
+-->
 
 ---
 
@@ -526,6 +747,18 @@ git clone -b java-21 https://github.com/dandesilva/refarch-jee-jakarta.git
 # Java 11 (Conservative)
 git clone -b java-11 https://github.com/dandesilva/refarch-jee-jakarta.git
 ```
+
+<!--
+SPEAKER NOTES:
+- Simple user experience: just clone the branch you want
+- No configuration needed - works out of the box
+- Each branch is independently tested
+- Default branch: java-21 (recommended for new projects)
+- Can switch branches easily to compare
+- Git strategy: better than Maven profiles (clearer separation)
+- Users don't need to understand complex build configurations
+- Time: 1 minute
+-->
 
 ---
 
@@ -565,6 +798,19 @@ FROM quay.io/wildfly/wildfly:31.0.1.Final-jdk21
 | **Memory** | Baseline | -10-15% lower |
 | **Best For** | Conservative | Modern projects |
 
+<!--
+SPEAKER NOTES:
+- This table helps users make informed decisions
+- Java 11: LTS until Sept 2026 (less than 6 months from now!)
+- Java 21: LTS until Sept 2029 (3+ years of support)
+- Records, pattern matching, text blocks: make code cleaner
+- Virtual threads: game-changer for scalability
+- Performance: benchmarks show 10-20% improvement in most workloads
+- Memory: GC improvements, smaller heap footprint
+- Recommendation: Java 21 unless you have specific constraints
+- Time: 2 minutes
+-->
+
 ---
 
 ## Documentation Added
@@ -601,6 +847,18 @@ FROM quay.io/wildfly/wildfly:31.0.1.Final-jdk21
 
 **Both branches:** Same Jakarta EE 10 APIs, same functionality
 
+<!--
+SPEAKER NOTES:
+- Important: both branches have identical Jakarta EE features
+- Only difference: Java language version
+- Business logic: completely the same
+- Dependencies: same Jakarta EE 10 libraries
+- This gives users flexibility without sacrificing functionality
+- Can start with Java 11, migrate to Java 21 later
+- Or go straight to Java 21 if organization allows
+- Time: 1 minute
+-->
+
 ---
 
 <!-- _class: lead -->
@@ -630,6 +888,19 @@ public class ProductSearchServiceImpl implements ProductSearchService {
 
 **Learning:** Modern app servers are secure-by-default
 
+<!--
+SPEAKER NOTES:
+- This was our first roadblock - very frustrating!
+- Error appeared after deployment, not at compile time
+- WildFly 31 security: deny all by default (good practice)
+- Solution: add @PermitAll annotation
+- WARNING: @PermitAll is for demo/development only
+- Production: use @RolesAllowed("admin") with proper auth
+- Important lesson: read WildFly migration guides
+- Modern security: explicit permissions, not implicit allow
+- Time: 2 minutes
+-->
+
 ---
 
 ## Challenge 2: Hibernate Dialect
@@ -650,6 +921,20 @@ without JDBC metadata
 ```
 
 **Learning:** JPA provider migration requires configuration review
+
+<!--
+SPEAKER NOTES:
+- Second major issue we hit
+- Hibernate couldn't auto-detect database dialect
+- Root cause: persistence.xml still had OpenJPA properties
+- Each JPA provider has different property names
+- OpenJPA: openjpa.jdbc.DBDictionary
+- Hibernate: hibernate.dialect
+- Must read both old and new provider documentation
+- hbm2ddl.auto: "none" is production best practice (don't auto-generate schema)
+- Lesson: can't just swap JPA providers, must update configuration
+- Time: 2 minutes
+-->
 
 ---
 
@@ -676,6 +961,21 @@ public class Product {
 }
 ```
 
+<!--
+SPEAKER NOTES:
+- This was tricky and subtle!
+- Jakarta EE uses JSON-B as default (not Jackson)
+- JSON-B is the Jakarta standard for JSON binding
+- Our code had Jackson annotations (@JsonIgnore)
+- WildFly ignored Jackson annotations, used JSON-B
+- Circular reference: Product has Categories, Category has Products
+- Result: infinite loop during serialization
+- Solution: add both @JsonIgnore (Jackson) and @JsonbTransient (JSON-B)
+- Lesson: know what your app server uses for JSON
+- Alternative: configure WildFly to use Jackson instead
+- Time: 3 minutes
+-->
+
 ---
 
 ## Other Challenges
@@ -693,6 +993,18 @@ RUN chown -R jboss:jboss /opt/jboss/wildfly/standalone
 
 **Challenge 6: ARM64 Compatibility**
 IBM DB2 doesn't support Apple Silicon → Switch to PostgreSQL
+
+<!--
+SPEAKER NOTES:
+- These are smaller challenges but worth mentioning
+- JNDI format: easy to miss the slash, runtime error
+- Container permissions: WildFly runs as non-root user 'jboss'
+- ARM64: real problem for Apple Silicon Macs (M1/M2/M3)
+- Each challenge taught us something
+- Don't expect smooth sailing - budget time for debugging
+- Good documentation and logging helps tremendously
+- Time: 1 minute
+-->
 
 ---
 
@@ -713,6 +1025,20 @@ IBM DB2 doesn't support Apple Silicon → Switch to PostgreSQL
 | **JPA** | OpenJPA | Hibernate 6.4 | Industry standard |
 | **Deployment** | Manual | Containerized | Cloud-ready |
 | **Versions** | Single | Multi-version branches | User choice |
+
+<!--
+SPEAKER NOTES:
+- This table shows the transformation
+- Every aspect improved: no compromises
+- Java: 20-year leap (1.6 from 2006 to 21 in 2024)
+- Platform: Jakarta EE is industry standard now
+- Vendor independence: huge win, no IBM licensing
+- PostgreSQL: excellent database, ARM64 support
+- Hibernate: most popular JPA provider
+- Containerized: ready for modern deployment
+- Multi-version: flexibility for different organizations
+- Time: 2 minutes
+-->
 
 ---
 
@@ -747,6 +1073,21 @@ IBM DB2 doesn't support Apple Silicon → Switch to PostgreSQL
 - Can run old/new in parallel
 - Easy rollback
 
+<!--
+SPEAKER NOTES:
+- These are the proof points
+- 100% functional parity: most important metric
+- Nothing was lost in migration
+- Data validated: all 13 products, 8 categories working
+- Code quality improved: cleaner, more maintainable
+- Removed boilerplate: CDI injection eliminated manual lookups
+- Anti-patterns: JNDI lookups, silent failures, verbose code
+- Zero downtime: blue-green deployment possible
+- Can run old and new systems in parallel during migration
+- Risk mitigation: easy rollback if issues found
+- Time: 2 minutes
+-->
+
 ---
 
 ## Business Value
@@ -764,6 +1105,21 @@ IBM DB2 doesn't support Apple Silicon → Switch to PostgreSQL
 - CI/CD integration
 - Multi-cloud flexibility
 - Modern observability
+
+<!--
+SPEAKER NOTES:
+- Translate technical wins to business value
+- Vendor independence: huge for negotiations and costs
+- Cost reduction: no IBM licensing fees (can be 6+ figures)
+- Cloud native: enables modern infrastructure
+- Developer experience: easier to hire, better productivity
+- Long-term support: Jakarta EE actively developed
+- Kubernetes: horizontal scaling, high availability
+- Microservices: can decompose monolith gradually
+- Multi-cloud: not locked to single cloud provider
+- This is about strategic flexibility, not just tech modernization
+- Time: 3 minutes
+-->
 
 ---
 
@@ -790,6 +1146,21 @@ IBM DB2 doesn't support Apple Silicon → Switch to PostgreSQL
 - Build after each major change
 - Catch errors early
 
+<!--
+SPEAKER NOTES:
+- These are hard-won lessons
+- Automation: sed, Eclipse Transformer save hours
+- But always review: automation can be too broad
+- Dependencies matter: read migration guides for each library
+- JSON-B vs Jackson: we learned this the hard way
+- JPA providers: configuration is not portable
+- Incremental testing: compile after each phase
+- Don't batch changes: harder to debug
+- Commit frequently: git is your safety net
+- These lessons apply to any migration project
+- Time: 2 minutes
+-->
+
 ---
 
 ## Process Lessons
@@ -809,6 +1180,21 @@ IBM DB2 doesn't support Apple Silicon → Switch to PostgreSQL
 - Don't blindly use @PermitAll
 - Plan authentication strategy
 
+<!--
+SPEAKER NOTES:
+- Process is as important as technical skills
+- DB2 ARM64 issue: discovered late, could have been earlier
+- PostgreSQL backup: always have plan B
+- Document everything: future you will thank you
+- Session logs: captured decisions and rationale
+- Migration guide: created from our experience
+- Knowledge transfer: documentation makes it repeatable
+- Security defaults: modern servers are secure-by-default
+- Don't use @PermitAll in production - it's a shortcut
+- Authentication should be planned from the start
+- Time: 2 minutes
+-->
+
 ---
 
 ## Migration Strategy Recommendations
@@ -825,6 +1211,20 @@ IBM DB2 doesn't support Apple Silicon → Switch to PostgreSQL
 - `import com.ibm.*` (vendor lock-in)
 - Manual JNDI lookups (use CDI)
 - Silent exception handling
+
+<!--
+SPEAKER NOTES:
+- Actionable recommendations for your migration
+- Assessment: know what you're dealing with (use Grep for `import com.ibm`)
+- Incremental approach: don't change everything at once
+- Order matters: Foundation (Java) → Dependencies → Code → Config
+- Choose app server: WildFly (free), Payara (commercial support), OpenLiberty
+- Budget time: this app took ~15 hours, medium app = 2-4 weeks
+- Parallelize risk: run old and new side-by-side, route subset of traffic
+- Red flags: vendor-specific imports, manual JNDI, printStackTrace
+- These patterns indicate technical debt and migration risk
+- Time: 3 minutes
+-->
 
 ---
 
@@ -851,6 +1251,21 @@ IBM DB2 doesn't support Apple Silicon → Switch to PostgreSQL
 - Health check endpoints
 - Logging aggregation
 
+<!--
+SPEAKER NOTES:
+- Migration complete, but work continues
+- Security: @PermitAll was for demo, need real auth
+- Authentication options: LDAP (enterprise), OAuth2 (modern), SAML
+- Role-based access: @RolesAllowed("admin"), @RolesAllowed("customer")
+- Testing: test module exists but was temporarily disabled
+- Integration tests: test with real database, real WildFly
+- CI/CD: automate build, test, deployment
+- Monitoring: WildFly has built-in metrics (Prometheus compatible)
+- Health checks: /health endpoint for Kubernetes
+- Logging: aggregate logs to centralized system (ELK, Splunk)
+- Time: 2 minutes
+-->
+
 ---
 
 ## Long-term Roadmap
@@ -875,6 +1290,22 @@ IBM DB2 doesn't support Apple Silicon → Switch to PostgreSQL
 - Kubernetes manifests
 - CI/CD pipeline
 - Multi-environment strategy
+
+<!--
+SPEAKER NOTES:
+- Phase 1 complete: multi-version support ✅
+- Phases 2-4: production readiness timeline
+- Production hardening: SSL/TLS, connection pooling, JVM tuning
+- Connection pool: tune for your load (min/max connections, timeout)
+- JVM optimization: heap size, GC algorithm (G1GC vs ZGC)
+- Modern Java features (Phase 3): records for DTOs, text blocks for SQL
+- Example: Product DTO could be a record instead of class
+- Cloud deployment: Kubernetes manifests, Helm charts
+- CI/CD: GitLab/GitHub Actions, automated testing
+- Multi-environment: dev, staging, production with proper separation
+- This roadmap is realistic: 3-4 months to full production readiness
+- Time: 2 minutes
+-->
 
 ---
 
@@ -907,6 +1338,22 @@ IBM DB2 doesn't support Apple Silicon → Switch to PostgreSQL
 - Automation accelerates work
 - Documentation ensures success
 
+<!--
+SPEAKER NOTES:
+- Summarize the main points
+- 15 hours: demonstrates this is achievable, not years-long project
+- 26 files: medium-sized app, your app might be bigger but same approach
+- 100% functional parity: no features lost, no compromises
+- Zero rewrites: migration, not reimplementation
+- Jakarta EE mature: not bleeding edge, production-ready
+- Tooling excellent: IDE support, build tools, documentation
+- Community: active, helpful, responsive
+- Multi-version: empowers users to choose their path
+- Process matters: automation, incremental changes, testing
+- These takeaways apply to any enterprise migration
+- Time: 3 minutes
+-->
+
 ---
 
 ## Final Thoughts
@@ -923,6 +1370,20 @@ IBM DB2 doesn't support Apple Silicon → Switch to PostgreSQL
 
 ✅ The investment pays dividends in flexibility
 
+<!--
+SPEAKER NOTES:
+- Final thoughts - reinforce the message
+- No complete rewrites: migration preserves your investment
+- Jakarta EE path: clear, documented, supported
+- Containerization: Docker/Podman/Kubernetes ready
+- Open source: no vendor lock-in, cost effective
+- Flexibility: cloud providers, deployment models, scaling strategies
+- This is about future-proofing your application
+- Strategic investment: enables future capabilities
+- Pause for emphasis before final statement
+- Time: 2 minutes
+-->
+
 ---
 
 <!-- _class: lead -->
@@ -932,6 +1393,17 @@ IBM DB2 doesn't support Apple Silicon → Switch to PostgreSQL
 ## Is not just a technical upgrade—
 
 ## It's a strategic investment in your application's future
+
+<!--
+SPEAKER NOTES:
+- This is the key message - pause here
+- Not just a tech upgrade: strategic business decision
+- Application's future: longevity, maintainability, flexibility
+- Enables future capabilities: cloud, microservices, modern DevOps
+- Reduces technical debt and risk
+- Let this message sink in before moving to resources
+- Time: 30 seconds
+-->
 
 ---
 
@@ -958,6 +1430,22 @@ https://github.com/dandesilva/refarch-jee-jakarta
 - WildFly: https://docs.wildfly.org/31/
 - Hibernate 6: https://hibernate.org/orm/documentation/6.4/
 
+<!--
+SPEAKER NOTES:
+- Share the resources - these are all publicly available
+- GitHub repo: complete source code, free to use
+- Default branch java-21: recommended starting point
+- VERSION_MATRIX.md: detailed comparison of Java versions
+- MIGRATION.md: step-by-step guide, use it as checklist
+- DEPLOYMENT.md: containerization, database setup
+- Session logs: detailed notes from actual migration work
+- Official resources: bookmark these for reference
+- Jakarta EE specs: authoritative documentation
+- WildFly docs: comprehensive, well-maintained
+- Hibernate: ORM documentation, lots of examples
+- Time: 2 minutes
+-->
+
 ---
 
 ## Migration Tools
@@ -976,11 +1464,41 @@ Code migration recipes
 https://github.com/gaul/modernizer-maven-plugin
 Detect deprecated APIs
 
+<!--
+SPEAKER NOTES:
+- Tools that can help your migration
+- Eclipse Transformer: official tool, handles complex cases
+- Better than sed for large projects
+- Can transform JAR files, WAR files, not just source
+- OpenRewrite: recipes for common migrations
+- Automated refactoring, maintains code style
+- Modernizer Plugin: finds deprecated API usage
+- Helps identify problem areas before migration
+- All free, open source tools
+- Use them to reduce manual work
+- Time: 1 minute
+-->
+
 ---
 
 <!-- _class: lead -->
 
 # Questions?
+
+<!--
+SPEAKER NOTES:
+- Open for questions
+- Common questions to expect:
+  - How long did it really take? ~15 hours active work over 2 weeks
+  - What was the hardest part? JSON-B vs Jackson serialization
+  - Would you use WildFly again? Yes, excellent choice
+  - What about WebLogic/WebSphere? Same Jakarta EE APIs apply
+  - Can we do gradual migration? Yes, run both systems in parallel
+  - What about microservices? This sets foundation for that
+- Offer to discuss offline for detailed scenarios
+- Share GitHub repo URL again
+- Time: 5-10 minutes
+-->
 
 ---
 
@@ -999,5 +1517,17 @@ JavaEE 5/6 → Jakarta EE 10
 **Status:** ✅ Complete and Production-Ready
 
 **Session Date:** April 2026
+
+<!--
+SPEAKER NOTES:
+- Thank the audience for their time and attention
+- Reiterate: migration is achievable, not daunting
+- Encourage them to start their own migration journey
+- Share contact information if appropriate
+- Final reminder: GitHub repo is available
+- Offer to answer follow-up questions via email/Slack
+- Close with confidence: Jakarta EE is the right choice
+- Total presentation time: ~45-50 minutes + Q&A
+-->
 
 ---

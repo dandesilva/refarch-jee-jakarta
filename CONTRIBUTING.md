@@ -58,7 +58,7 @@ For enhancement suggestions:
 
 ### Prerequisites
 
-- Java 11 or later
+- Java 11 or Java 21 (LTS versions - see [VERSION_MATRIX.md](VERSION_MATRIX.md))
 - Maven 3.6+
 - Podman or Docker
 - Git

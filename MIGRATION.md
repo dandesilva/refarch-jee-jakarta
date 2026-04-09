@@ -21,7 +21,7 @@ The migration transformed a JavaEE 5/6 application into a modern Jakarta EE 10 a
 
 | Aspect | Before | After |
 |--------|--------|-------|
-| Java Version | 1.6 | 11 |
+| Java Version | 1.6 | 11 or 21 (LTS versions available) |
 | Platform | JavaEE 5/6 | Jakarta EE 10 |
 | App Server | IBM WebSphere Liberty | WildFly 31 |
 | Database | IBM DB2 | PostgreSQL 15 |
@@ -83,7 +83,9 @@ Follow the step-by-step guide below.
 
 ### Step 1: Upgrade Java Version
 
-**Parent POM (`pom.xml`):**
+**Choose your Java LTS version** (11 or 21):
+
+**For Java 11:**
 ```xml
 <properties>
     <maven.compiler.source>11</maven.compiler.source>
@@ -91,6 +93,17 @@ Follow the step-by-step guide below.
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 </properties>
 ```
+
+**For Java 21:**
+```xml
+<properties>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+</properties>
+```
+
+See [VERSION_MATRIX.md](VERSION_MATRIX.md) for detailed comparison and recommendations.
 
 **Validate:**
 ```bash
@@ -611,10 +624,13 @@ Migrating to Jakarta EE is a significant but worthwhile effort. The benefits of 
 
 This guide is based on a real-world migration completed in April 2026. Your mileage may vary, but the principles remain the same.
 
+**Multiple Java Versions:** This repository supports both Java 11 and Java 21 LTS versions via separate git branches. See [VERSION_MATRIX.md](VERSION_MATRIX.md) for detailed comparison and recommendations.
+
 **Questions?** Check the [session logs](docs/session-logs/) for detailed troubleshooting examples.
 
 ---
 
-**Last Updated:** April 3, 2026  
+**Last Updated:** April 9, 2026  
 **Migration Version:** JavaEE 6 → Jakarta EE 10  
+**Java Versions:** 11 (Conservative) | 21 (Recommended)  
 **Success Rate:** 100% (with documented workarounds)

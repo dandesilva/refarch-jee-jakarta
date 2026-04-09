@@ -20,11 +20,13 @@ Complete deployment instructions for Customer Order Services Jakarta EE applicat
 
 | Software | Minimum Version | Recommended | Purpose |
 |----------|----------------|-------------|---------|
-| Java JDK | 11 | 17 LTS | Application runtime |
+| Java JDK | 11 or 21 (LTS) | 21 LTS | Application runtime |
 | Maven | 3.6 | 3.9.x | Build tool |
 | Podman/Docker | Any | Latest | Containerization |
 | PostgreSQL | 12 | 15 | Database |
 | WildFly | 27 | 31.0.1 | Application server |
+
+**Note:** This repository supports both Java 11 and Java 21. See [VERSION_MATRIX.md](VERSION_MATRIX.md) for version-specific guidance.
 
 ### System Requirements
 
@@ -287,7 +289,9 @@ After=network.target postgresql.service
 Type=notify
 User=wildfly
 Group=wildfly
-Environment="JAVA_HOME=/usr/lib/jvm/java-11-openjdk"
+# For Java 11: /usr/lib/jvm/java-11-openjdk
+# For Java 21: /usr/lib/jvm/java-21-openjdk
+Environment="JAVA_HOME=/usr/lib/jvm/java-21-openjdk"
 Environment="WILDFLY_HOME=/opt/wildfly"
 Environment="JAVA_OPTS=-Xms512m -Xmx2048m"
 ExecStart=/opt/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0
@@ -832,6 +836,7 @@ podman network rm customerorder-net
 
 ---
 
-**Last Updated:** April 3, 2026  
+**Last Updated:** April 9, 2026  
+**Java Versions:** 11 (Conservative) | 21 (Recommended) - see [VERSION_MATRIX.md](VERSION_MATRIX.md)  
 **Tested Environments:** RHEL 9, Ubuntu 22.04, macOS 14 (Sonoma)  
 **Container Runtimes:** Podman 4.9, Docker 25.x

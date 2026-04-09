@@ -399,6 +399,6 @@ Perfect for:
 ---
 
 **Status:** ✅ Production-ready for demonstration purposes  
-**Last Updated:** April 3, 2026  
+**Last Updated:** April 9, 2026  
 **Jakarta EE Version:** 10  
-**Java Version:** 11 (compatible with 17+)
+**Java Versions:** 11 (Conservative) | 21 (Recommended) - see [Available Versions](#-available-versions)
