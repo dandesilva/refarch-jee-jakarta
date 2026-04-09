@@ -22,13 +22,15 @@ Customer Order Services is a full-stack enterprise application that provides:
 
 | Component | Technology | Version |
 |-----------|-----------|---------|
-| **Language** | Java | 11 |
+| **Language** | Java | **21 (LTS)** - _This branch_ |
 | **Enterprise Platform** | Jakarta EE | 10 |
 | **Application Server** | WildFly | 31.0.1.Final |
 | **Database** | PostgreSQL | 15 |
 | **ORM/JPA** | Hibernate | 6.4.4.Final |
 | **Build Tool** | Maven | 3.x |
 | **Container Runtime** | Podman/Docker | Latest |
+
+> **📌 Note:** This is the **Java 21 branch**. For Java 11 version, see the [`java-11` branch](../../tree/java-11). For all versions, see [Available Versions](#-available-versions) below.
 
 ## 🎯 Key Features
 
