@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.json.bind.annotation.JsonbTransient;
 
 @Entity
@@ -45,6 +46,7 @@ public class Category implements Serializable {
 	private Collection<Product> products;
 	
 	@JsonProperty(value="id")
+	@JsonbProperty("id")
 	public int getCategoryID() {
 		return categoryID;
 	}

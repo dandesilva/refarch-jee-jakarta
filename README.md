@@ -119,9 +119,13 @@ podman run -d --name postgres-orderdb \
   -e POSTGRES_PASSWORD=db2inst1 \
   postgres:15
 
-# Load schema and sample data
+# Load schema
 podman exec -i postgres-orderdb \
   psql -U db2inst1 -d ORDERDB < Common/createOrderDB_postgres.sql
+
+# Load seed data
+podman exec -i postgres-orderdb \
+  psql -U db2inst1 -d ORDERDB < Common/initialDataSet.sql
 ```
 
 ### 3. Build and Run the Application
@@ -138,20 +142,33 @@ podman run -d --name customerorder-app \
   customerorder-app:latest
 ```
 
-### 4. Access the Application
+### 4. Create an Application User
+
+Customer endpoints require BASIC authentication with the `SecureShopper` role. Create a user that matches one of the seeded customers:
+
+```bash
+podman exec customerorder-app \
+  /opt/jboss/wildfly/bin/add-user.sh \
+  -a -u rbarcia -p password1! -g SecureShopper --silent
+```
+
+### 5. Access the Application
+
+**Web UI:** http://localhost:8080/CustomerOrderServicesWeb/
+- Log in with `rbarcia` / `password1!` when prompted
 
 **REST API Base URL:** http://localhost:8080/CustomerOrderServicesWeb/jaxrs
 
 **Test Endpoints:**
 ```bash
-# Get product by ID
-curl http://localhost:8080/CustomerOrderServicesWeb/jaxrs/Product/1
-
 # List all categories
 curl http://localhost:8080/CustomerOrderServicesWeb/jaxrs/Category
 
 # Get products by category
-curl 'http://localhost:8080/CustomerOrderServicesWeb/jaxrs/Product?categoryId=1'
+curl 'http://localhost:8080/CustomerOrderServicesWeb/jaxrs/Product?categoryId=2'
+
+# Get customer info (requires auth)
+curl -u rbarcia:password1! http://localhost:8080/CustomerOrderServicesWeb/jaxrs/Customer
 ```
 
 **WildFly Admin Console:** http://localhost:9990
@@ -399,6 +416,6 @@ Perfect for:
 ---
 
 **Status:** ✅ Production-ready for demonstration purposes  
-**Last Updated:** April 9, 2026  
+**Last Updated:** April 10, 2026  
 **Jakarta EE Version:** 10  
 **Java Versions:** 11 (Conservative) | 21 (Recommended) - see [Available Versions](#-available-versions)

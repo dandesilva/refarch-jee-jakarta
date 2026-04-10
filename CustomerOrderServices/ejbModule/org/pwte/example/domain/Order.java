@@ -20,6 +20,7 @@ import jakarta.persistence.Version;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.json.bind.annotation.JsonbTransient;
 
 @Entity
 @Table(name="ORDERS")
@@ -66,11 +67,13 @@ public class Order implements Serializable {
 	}
 	
 	@JsonIgnore
+	@JsonbTransient
 	public AbstractCustomer getCustomer() {
 		return customer;
 	}
-	
+
 	@JsonIgnore
+	@JsonbTransient
 	public void setCustomer(AbstractCustomer customer) {
 		this.customer = customer;
 	}

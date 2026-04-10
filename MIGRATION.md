@@ -322,28 +322,71 @@ public class ProductResource {
 
 ### Step 8: Handle JSON-B Serialization
 
-If your application server uses JSON-B (like WildFly), add JSON-B annotations:
+WildFly 31 uses JSON-B (Yasson) as its default JSON provider, not Jackson. This has two important implications.
+
+**8a. Use `@JsonbTransient` instead of `@JsonIgnore` for lazy collections**
+
+Jackson's `@JsonIgnore` is not respected by JSON-B. Any lazily-loaded JPA collection without `@JsonbTransient` will trigger a `LazyInitializationException` when the serializer accesses it outside a Hibernate session:
 
 ```java
 import jakarta.json.bind.annotation.JsonbTransient;
 
 @Entity
-public class Product {
-    @ManyToMany
-    @JsonbTransient  // Exclude from JSON serialization
-    private Collection<Category> categories;
-    
-    @JsonbTransient
-    public Collection<Category> getCategories() {
-        return categories;
+public class AbstractCustomer {
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
+    protected Set<Order> orders;
+
+    @JsonbTransient  // Required — @JsonIgnore alone is NOT enough for JSON-B
+    public Set<Order> getOrders() {
+        return orders;
     }
 }
 ```
 
-**When to use:**
-- Circular references between entities
-- Collections that cause infinite loops
+Apply the same pattern to any back-reference on the owning side to prevent circular serialization:
+
+```java
+@Entity
+public class Order {
+    @ManyToOne(fetch = FetchType.LAZY)
+    protected AbstractCustomer customer;
+
+    @JsonIgnore     // Keep for any Jackson consumers
+    @JsonbTransient // Required for JSON-B
+    public AbstractCustomer getCustomer() {
+        return customer;
+    }
+}
+```
+
+**8b. Use `@JsonbProperty` alongside `@JsonProperty` for field name overrides**
+
+Jackson's `@JsonProperty` is also ignored by JSON-B. If you override a JSON field name with `@JsonProperty`, add a matching `@JsonbProperty` so the same name is used by both serializers. Mismatches cause client-side failures when the API response field names differ from what the frontend expects:
+
+```java
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.json.bind.annotation.JsonbProperty;
+
+@Entity
+public class Category {
+    private int categoryID;
+
+    @JsonProperty(value = "id")   // For Jackson
+    @JsonbProperty("id")          // For JSON-B — BOTH are required
+    public int getCategoryID() {
+        return categoryID;
+    }
+}
+```
+
+**When to use `@JsonbTransient`:**
+- Lazy-loaded JPA collections on entities serialized by JAX-RS
+- Circular references between entities (e.g., `Order` → `Customer` → `Order`)
 - Fields you don't want in JSON output
+
+**When to use `@JsonbProperty`:**
+- Any getter where `@JsonProperty` changes the serialized field name
+- Any getter where the default JSON-B name (derived from the getter) differs from the Jackson name
 
 ### Step 9: Database Migration (if needed)
 
@@ -436,19 +479,50 @@ public class YourServiceImpl implements YourService {
 }
 ```
 
-### Issue 4: JSON Serialization Error
+### Issue 4: JSON Serialization Error — Circular Reference or Lazy Collection
 
 **Error:**
 ```
-JSON Binding serialization error: Unable to serialize property 'categories'
+RESTEASY008205: JSON Binding serialization error: Unable to serialize property 'orders'
+Caused by: org.hibernate.LazyInitializationException: failed to lazily initialize a collection
 ```
 
+**Root cause:**
+WildFly 31 uses JSON-B (Yasson), not Jackson. Jackson's `@JsonIgnore` is silently ignored by JSON-B, so any `FetchType.LAZY` collection without `@JsonbTransient` triggers a `LazyInitializationException` when serialized outside a Hibernate session.
+
 **Solution:**
-Add `@JsonbTransient` to problematic properties:
+Add `@JsonbTransient` to the getter (and setter) of all lazy-loaded collections and back-references:
 ```java
+@JsonbTransient  // @JsonIgnore alone is NOT sufficient for JSON-B
+public Set<Order> getOrders() {
+    return orders;
+}
+```
+
+If you also have a Jackson consumer, keep both annotations:
+```java
+@JsonIgnore
 @JsonbTransient
-public Collection<Category> getCategories() {
-    return categories;
+public AbstractCustomer getCustomer() {
+    return customer;
+}
+```
+
+### Issue 4b: `@JsonProperty` Field Name Override Not Applied by JSON-B
+
+**Symptom:**
+API response returns field name `categoryID` but client code expects `id` (or vice versa), causing silent frontend failures such as category filtering returning no results.
+
+**Root cause:**
+`@JsonProperty` (FasterXML) is a Jackson-only annotation. JSON-B derives field names from getter method names by default, ignoring `@JsonProperty` entirely.
+
+**Solution:**
+Add a matching `@JsonbProperty` alongside every `@JsonProperty` that overrides a field name:
+```java
+@JsonProperty(value = "id")   // Jackson
+@JsonbProperty("id")          // JSON-B
+public int getCategoryID() {
+    return categoryID;
 }
 ```
 
@@ -630,7 +704,7 @@ This guide is based on a real-world migration completed in April 2026. Your mile
 
 ---
 
-**Last Updated:** April 9, 2026  
+**Last Updated:** April 10, 2026  
 **Migration Version:** JavaEE 6 → Jakarta EE 10  
 **Java Versions:** 11 (Conservative) | 21 (Recommended)  
 **Success Rate:** 100% (with documented workarounds)

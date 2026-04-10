@@ -167,6 +167,10 @@ sleep 10
 # Load schema
 podman exec -i postgres-orderdb \
   psql -U db2inst1 -d ORDERDB < Common/createOrderDB_postgres.sql
+
+# Load seed data (products, categories, sample customers)
+podman exec -i postgres-orderdb \
+  psql -U db2inst1 -d ORDERDB < Common/initialDataSet.sql
 ```
 
 **Step 4: Build Application Container**
@@ -185,14 +189,30 @@ podman run -d --name customerorder-app \
   customerorder-app:latest
 ```
 
-**Step 6: Verify**
+**Step 6: Create Application User**
+
+Customer endpoints require BASIC authentication with the `SecureShopper` role. Create a user matching one of the seeded customers:
+
+```bash
+podman exec customerorder-app \
+  /opt/jboss/wildfly/bin/add-user.sh \
+  -a -u rbarcia -p password1! -g SecureShopper --silent
+```
+
+**Step 7: Verify**
 
 ```bash
 # Check logs
 podman logs -f customerorder-app
 
-# Test API
+# Test public API
 curl http://localhost:8080/CustomerOrderServicesWeb/jaxrs/Category
+
+# Test authenticated API
+curl -u rbarcia:password1! http://localhost:8080/CustomerOrderServicesWeb/jaxrs/Customer
+
+# Open the web UI
+open http://localhost:8080/CustomerOrderServicesWeb/
 ```
 
 ### Using Docker Compose / Podman Compose
@@ -836,7 +856,7 @@ podman network rm customerorder-net
 
 ---
 
-**Last Updated:** April 9, 2026  
+**Last Updated:** April 10, 2026  
 **Java Versions:** 11 (Conservative) | 21 (Recommended) - see [VERSION_MATRIX.md](VERSION_MATRIX.md)  
 **Tested Environments:** RHEL 9, Ubuntu 22.04, macOS 14 (Sonoma)  
 **Container Runtimes:** Podman 4.9, Docker 25.x

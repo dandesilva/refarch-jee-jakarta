@@ -19,6 +19,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.json.bind.annotation.JsonbTransient;
 
 @Entity
 @Table(name = "CUSTOMER")
@@ -51,6 +52,7 @@ public abstract class AbstractCustomer implements Serializable {
 	@OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
 	protected Set<Order> orders;
 
+	@JsonbTransient
 	public Set<Order> getOrders() {
 		return orders;
 	}
